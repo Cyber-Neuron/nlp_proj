@@ -1,0 +1,6 @@
+eclipse.preferences.version=1
+encoding//tensor2tensor/tensor2tensor/data_generators/text_encoder.py=utf-8
+encoding//tensor2tensor/tensor2tensor/models/transformer.py=utf-8
+encoding//tensor2tensor/tensor2tensor/utils/expert_utils.py=utf-8
+encoding//tensor2tensor/tensor2tensor/utils/t2t_model.py=utf-8
+encoding//tensor2tensor/tensor2tensor/visualization/attention.py=utf-8
