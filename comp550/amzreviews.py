@@ -14,7 +14,6 @@ from tensor2tensor.utils import registry
 import json
 import tensorflow as tf
 
-
 def _build_vocab(filename, vocab_dir, vocab_name):
     """Reads a file to build a vocabulary.
  
@@ -67,8 +66,9 @@ def _maybe_download_corpus(tmp_dir, vocab_type):
                   "http://snap.stanford.edu/data/amazon/productGraph/categoryFiles/reviews_Movies_and_TV_5.json.gz",
                   "http://snap.stanford.edu/data/amazon/productGraph/categoryFiles/reviews_Electronics_5.json.gz"
                   ]
-    dataset_url = dataset_urls[0]
-    dir_name = "awslm"
+    idx=1
+    dataset_url = dataset_urls[idx]
+    dir_name = "awslm_"+str(idx)
     fname = os.path.basename(dataset_url)
     compressed_filepath = generator_utils.maybe_download(tmp_dir, fname,
                                                          dataset_url)
@@ -76,9 +76,14 @@ def _maybe_download_corpus(tmp_dir, vocab_type):
     unpacked_dir = os.path.join(tmp_dir, dir_name)
     if not tf.gfile.Exists(unpacked_dir):
         tf.gfile.MakeDirs(unpacked_dir)
-    generator_utils.gunzip_file(compressed_filepath , unpacked_dir + "/" + os.path.splitext(fname)[0])
-
-    files = os.path.join(tmp_dir, dir_name, "*")
+    unpacked_file=os.path.join(compressed_filepath , unpacked_dir + "/" + os.path.splitext(fname)[0])
+    generator_utils.gunzip_file(compressed_filepath , unpacked_file)
+    txt=os.path.splitext(unpacked_file)[0]+".txt"
+    if not tf.gfile.Exists(txt):
+        with open(unpacked_file,"rb") as jf, open(txt,"w") as wf:
+            for line in jf:
+                wf.write(json.loads(line)["reviewText"]+"\n")
+    files = os.path.join(tmp_dir, dir_name, "*.txt")
     train_file, valid_file, test_file = None, None, None
     for f in tf.gfile.Glob(files):
 #         fname = os.path.basename(f)
@@ -126,15 +131,19 @@ class Amzlm(text_problems.Text2SelfProblem):
 
     @property
     def vocab_type(self):
-        return text_problems.VocabType.TOKEN
-    
+#         return text_problems.VocabType.TOKEN
+        return text_problems.VocabType.SUBWORD
+    @property
+    def approx_vocab_size(self):
+        return 2**15  # 32768
     def generate_samples(self, data_dir, tmp_dir, dataset_split):
         del dataset_split
         train_file = _maybe_download_corpus(
             tmp_dir, self.vocab_type)
 
         filepath = train_file
-        _build_vocab(train_file, data_dir, self.vocab_filename)
+        if self.vocab_type==text_problems.VocabType.TOKEN:
+            _build_vocab(train_file, data_dir, self.vocab_filename)
 
 
 
@@ -143,10 +152,8 @@ class Amzlm(text_problems.Text2SelfProblem):
                 for line in f:
                     line = " ".join(line.strip().split())
                     if line:
-                        yield {"targets": json.loads(line)["reviewText"]}
+#                         yield {"targets": json.loads(line)["reviewText"]}
+                        yield {"targets": line}
 
         return _generate_samples()
-
-
-
 
