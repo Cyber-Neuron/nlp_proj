@@ -8,6 +8,7 @@ import tarfile
 from tensor2tensor.data_generators import generator_utils
 from tensor2tensor.data_generators import problem
 from tensor2tensor.data_generators import text_problems
+from tensor2tensor.data_generators.sst_binary import SentimentSSTBinary
 from tensor2tensor.utils import registry
 from tensor2tensor.utils import restore_hook
 import tensorflow as tf
@@ -20,6 +21,13 @@ FLAGS = flags.FLAGS
 class Amzcls(text_problems.Text2ClassProblem):
     """IMDB sentiment classification."""
     URL = "http://ai.stanford.edu/~amaas/data/sentiment/aclImdb_v1.tar.gz"
+    @property
+    def vocab_filename(self):
+        if self.vocab_type == text_problems.VocabType.SUBWORD:
+            return "vocab.%s.%d.%s" % ("amzlm_videos",
+                                 self.approx_vocab_size,
+                                 text_problems.VocabType.SUBWORD)
+
     @property
     def is_generate_per_split(self):
         return True
@@ -75,9 +83,98 @@ class Amzcls(text_problems.Text2ClassProblem):
         dataset = "train" if train else "test"
         for doc, label in self.doc_generator(imdb_dir, dataset, include_label=True):
             yield {
-                "inputs": doc,
+                "inputs": doc.lower(),
                 "label": int(label),
             }
 
+@registry.register_problem
+class AmzclsBook(Amzcls):
+#     def dataset_filename(self):
+#         return super(AmzclsBook, self).name    
+    @property
+    def vocab_filename(self):
+        if self.vocab_type == text_problems.VocabType.SUBWORD:
+            return "vocab.%s.%d.%s" % ("amzlm_books",
+                                 self.approx_vocab_size,
+                                 text_problems.VocabType.SUBWORD)
 
 
+@registry.register_problem
+class AmzclsMovie(Amzcls):
+#     def dataset_filename(self):
+#         return super(AmzclsMovie, self).name    
+    @property
+    def vocab_filename(self):
+        if self.vocab_type == text_problems.VocabType.SUBWORD:
+            return "vocab.%s.%d.%s" % ("amzlm_movies",
+                                 self.approx_vocab_size,
+                                 text_problems.VocabType.SUBWORD)
+
+    
+@registry.register_problem
+class AmzclsElec(Amzcls):
+
+#     def dataset_filename(self):
+#         return super(AmzclsElec, self).name
+    @property
+    def vocab_filename(self):
+        if self.vocab_type == text_problems.VocabType.SUBWORD:
+            return "vocab.%s.%d.%s" % ("amzlm_elecs",
+                                 self.approx_vocab_size,
+                                 text_problems.VocabType.SUBWORD)
+    
+@registry.register_problem
+class Amzsst(SentimentSSTBinary):
+    @property
+    def vocab_filename(self):
+        if self.vocab_type == text_problems.VocabType.SUBWORD:
+            return "vocab.%s.%d.%s" % ("amzlm_videos",
+                                 self.approx_vocab_size,
+                                 text_problems.VocabType.SUBWORD)
+    @property
+    def approx_vocab_size(self):
+        return 2**15  # 8k vocab suffices for this small dataset.
+    def generate_samples(self, data_dir, tmp_dir, dataset_split):
+        for sample in super(Amzsst, self).generate_samples(data_dir, tmp_dir, dataset_split):
+            sample["inputs"]=sample["inputs"].lower()
+            yield sample
+@registry.register_problem
+class AmzsstRaw(SentimentSSTBinary):
+#     @property
+#     def vocab_filename(self):
+#         if self.vocab_type == text_problems.VocabType.SUBWORD:
+#             return "vocab.%s.%d.%s" % ("amzlm_videos",
+#                                  self.approx_vocab_size,
+#                                  text_problems.VocabType.SUBWORD)
+    @property
+    def approx_vocab_size(self):
+        return 2**15  # 8k vocab suffices for this small dataset.
+    def generate_samples(self, data_dir, tmp_dir, dataset_split):
+        for sample in super(AmzsstRaw, self).generate_samples(data_dir, tmp_dir, dataset_split):
+            sample["inputs"]=sample["inputs"].lower()
+            yield sample
+@registry.register_problem            
+class AmzsstBook(AmzsstRaw):
+    @property
+    def vocab_filename(self):
+        if self.vocab_type == text_problems.VocabType.SUBWORD:
+            return "vocab.%s.%d.%s" % ("amzlm_books",
+                                 self.approx_vocab_size,
+                                 text_problems.VocabType.SUBWORD)
+@registry.register_problem            
+class AmzsstMovie(AmzsstRaw):
+    @property
+    def vocab_filename(self):
+        if self.vocab_type == text_problems.VocabType.SUBWORD:
+            return "vocab.%s.%d.%s" % ("amzlm_movies",
+                                 self.approx_vocab_size,
+                                 text_problems.VocabType.SUBWORD)
+@registry.register_problem            
+class AmzsstElec(AmzsstRaw):   
+    @property
+    def vocab_filename(self):
+        if self.vocab_type == text_problems.VocabType.SUBWORD:
+            return "vocab.%s.%d.%s" % ("amzlm_elecs",
+                                 self.approx_vocab_size,
+                                 text_problems.VocabType.SUBWORD)     
+    

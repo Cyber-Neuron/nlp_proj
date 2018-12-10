@@ -71,7 +71,7 @@ def translate(inputs):
         model_output = translate_model.infer(encoded_inputs)["outputs"]
     return translate_model(encoded_inputs)
 
-inputs = "First of all I hate those moronic rappers _0BAD"
+inputs = "A beauty day with sad mood 0BAD 0GOOD"
 #outputs = translate(inputs)
 
 print("Inputs: %s" % inputs)
@@ -157,37 +157,42 @@ import matplotlib.pyplot as plt
 import numpy as np
 import matplotlib.cm as cm
 import matplotlib.ticker as ticker
-a = np.random.random((16, 16))
-z=enc_atts[0][0]
-nx, ny = z.shape
-indx, indy = np.arange(nx), np.arange(ny)
-x, y = np.meshgrid(indx, indy)
+fig = plt.figure()
 
-fig, ax = plt.subplots()
-ax.imshow(z.T, interpolation="nearest", cmap=cm.YlGn) # plot grid values
 
-for xval, yval in zip(x.flatten(), y.flatten()):
-    zval = z[xval, yval]
-    t = "%.1f%%"%(zval * 100,) # format value with 1 decimal point
-    c = 'w' if zval > 0.75 else 'k' # if dark-green, change text color to white
-    ax.text(xval, yval, t, color=c, va='center', ha='center')
 
-xlabels = inp_text +[""]
-ylabels = xlabels[::-1]
-ax.set_xticks(indx+0.5) # offset x/y ticks so gridlines run on border of boxes
-ax.set_yticks(indy+0.5)
-ax.grid(ls='-', lw=2)
+for i,z in enumerate(enc_atts[0]):
+    fig, ax = plt.subplots()
+    #ax = fig.add_subplot(2,2,i+1)
+    nx, ny = z.shape
+    indx, indy = np.arange(nx), np.arange(ny)
+    x, y = np.meshgrid(indx, indy)
+    
+    
+    ax.imshow(z.T, interpolation="nearest", cmap=cm.YlGn) # plot grid values
+    
+    for xval, yval in zip(x.flatten(), y.flatten()):
+        zval = z[xval, yval]
+        t = "%.1f%%"%(zval * 100,) # format value with 1 decimal point
+        c = 'w' if zval > 0.75 else 'k' # if dark-green, change text color to white
+        ax.text(xval, yval, t, color=c, va='center', ha='center')
+    
+    xlabels = inp_text +[""]
+    ylabels = xlabels#xlabels[::-1] #xlabels
+    ax.set_xticks(indx+0.5) # offset x/y ticks so gridlines run on border of boxes
+    ax.set_yticks(indy+0.5)
+    ax.grid(ls='-', lw=2)
+    
+    # the tick labels, if you want them centered need to be adjusted in 
+    # this special way.
+    for a, ind, labels in zip((ax.xaxis, ax.yaxis), (indx, indy), 
+                              (xlabels, ylabels)):
+        a.set_major_formatter(ticker.NullFormatter())
+        a.set_minor_locator(ticker.FixedLocator(ind))
+        a.set_minor_formatter(ticker.FixedFormatter(labels))
+    
+    ax.xaxis.tick_top()
 
-# the tick labels, if you want them centered need to be adjusted in 
-# this special way.
-for a, ind, labels in zip((ax.xaxis, ax.yaxis), (indx, indy), 
-                          (xlabels, ylabels)):
-    a.set_major_formatter(ticker.NullFormatter())
-    a.set_minor_locator(ticker.FixedLocator(ind))
-    a.set_minor_formatter(ticker.FixedFormatter(labels))
-
-ax.xaxis.tick_top()
-
-plt.show()
+    plt.show()
 #call_html()
 #attention.show(inp_text, inp_text, enc_atts, enc_atts, encdec_atts)

@@ -27,58 +27,71 @@ class TransferTransformer(transformer.Transformer):
     def __init__(self, *args, **kwargs):
         super(TransferTransformer, self).__init__(*args, **kwargs)
 
-    @staticmethod
-    def eval_hooks():
-        new_model_scope="transfer_transformer"
-        old_model_scope="transfer_transformer"
-        exclude=["class_label_modality_","symbol_modality_"]
-        restore_resnet_hook = RestoreHook(
+#     @staticmethod
+#     def eval_hooks():
+#         new_model_scope="transfer_transformer"
+#         old_model_scope="transfer_transformer"
+#         exclude=["class_label_modality_","symbol_modality_"]
+#         restore_resnet_hook = RestoreHook(
+#           # TODO(zichaoy): hard code the path given static function.
+#           checkpoint_path="/home/liudan/pyz-403-aa/PAN/t2t/outbak",#"/home/zichaoy/resnet_v1_152.ckpt",
+#           exclude=["class_label_modality_"]#,"symbol_modality_"]
+#       )
+#         if tf.train.latest_checkpoint(FLAGS.output_dir) is None:
+#             return []
+# #         variables_to_restore = tf.contrib.framework.get_variables_to_restore(
+# #         include=None, exclude=exclude)
+# #         print("000;",variables_to_restore)
+# #         # remove new_model_scope from variable name prefix
+# #         assignment_map = {variable.name[len(new_model_scope):]: variable
+# #                           for variable in variables_to_restore
+# #                           if variable.name.startswith(new_model_scope)}
+# #         # remove :0 from variable name suffix
+# #         assignment_map = {name.split(":")[0]: variable
+# #                           for name, variable in six.iteritems(assignment_map)
+# #                           if name.startswith(old_model_scope)}
+# #         print("111;",assignment_map)
+# #         _=1/0
+#         return [restore_resnet_hook]
+#     @staticmethod
+#     def train_hooks():
+#         new_model_scope="transfer_transformer"
+#         old_model_scope="transfer_transformer"
+#         exclude=["class_label_modality_","symbol_modality_"]
+#         restore_resnet_hook = RestoreHook(
+#           # TODO(zichaoy): hard code the path given static function.
+#           checkpoint_path="/home/liudan/pyz-403-aa/PAN/t2t/outbak",#"/home/zichaoy/resnet_v1_152.ckpt",
+#           exclude=["class_label_modality_"]#,"symbol_modality_"]
+#       )
+#         if tf.train.latest_checkpoint(FLAGS.output_dir) is None:
+#             return []
+# #         variables_to_restore = tf.contrib.framework.get_variables_to_restore(
+# #         include=None, exclude=exclude)
+# #         print("000;",variables_to_restore)
+# #         # remove new_model_scope from variable name prefix
+# #         assignment_map = {variable.name[len(new_model_scope):]: variable
+# #                           for variable in variables_to_restore
+# #                           if variable.name.startswith(new_model_scope)}
+# #         # remove :0 from variable name suffix
+# #         assignment_map = {name.split(":")[0]: variable
+# #                           for name, variable in six.iteritems(assignment_map)
+# #                           if name.startswith(old_model_scope)}
+# #         print("111;",assignment_map)
+# #         _=1/0
+#         return [restore_resnet_hook]
+    def initialize_from_ckpt(self, ckpt_dir):
+        model_dir = self._hparams.get("model_dir", None)
+        already_has_ckpt = (
+            model_dir and tf.train.latest_checkpoint(model_dir) is not None)
+        if already_has_ckpt:
+            return
+        
+        restore = RestoreHook(
           # TODO(zichaoy): hard code the path given static function.
-          checkpoint_path="/home/liudan/pyz-403-aa/PAN/t2t/outbak",#"/home/zichaoy/resnet_v1_152.ckpt",
+          checkpoint_path=ckpt_dir,#"/home/zichaoy/resnet_v1_152.ckpt",
           exclude=["class_label_modality_"]#,"symbol_modality_"]
       )
-        if tf.train.latest_checkpoint(FLAGS.output_dir) is None:
-            return []
-#         variables_to_restore = tf.contrib.framework.get_variables_to_restore(
-#         include=None, exclude=exclude)
-#         print("000;",variables_to_restore)
-#         # remove new_model_scope from variable name prefix
-#         assignment_map = {variable.name[len(new_model_scope):]: variable
-#                           for variable in variables_to_restore
-#                           if variable.name.startswith(new_model_scope)}
-#         # remove :0 from variable name suffix
-#         assignment_map = {name.split(":")[0]: variable
-#                           for name, variable in six.iteritems(assignment_map)
-#                           if name.startswith(old_model_scope)}
-#         print("111;",assignment_map)
-#         _=1/0
-        return [restore_resnet_hook]
-    @staticmethod
-    def train_hooks():
-        new_model_scope="transfer_transformer"
-        old_model_scope="transfer_transformer"
-        exclude=["class_label_modality_","symbol_modality_"]
-        restore_resnet_hook = RestoreHook(
-          # TODO(zichaoy): hard code the path given static function.
-          checkpoint_path="/home/liudan/pyz-403-aa/PAN/t2t/outbak",#"/home/zichaoy/resnet_v1_152.ckpt",
-          exclude=["class_label_modality_"]#,"symbol_modality_"]
-      )
-        if tf.train.latest_checkpoint(FLAGS.output_dir) is None:
-            return []
-#         variables_to_restore = tf.contrib.framework.get_variables_to_restore(
-#         include=None, exclude=exclude)
-#         print("000;",variables_to_restore)
-#         # remove new_model_scope from variable name prefix
-#         assignment_map = {variable.name[len(new_model_scope):]: variable
-#                           for variable in variables_to_restore
-#                           if variable.name.startswith(new_model_scope)}
-#         # remove :0 from variable name suffix
-#         assignment_map = {name.split(":")[0]: variable
-#                           for name, variable in six.iteritems(assignment_map)
-#                           if name.startswith(old_model_scope)}
-#         print("111;",assignment_map)
-#         _=1/0
-        return [restore_resnet_hook]
+        restore.begin()
     def encode(self, inputs, target_space, hparams, features=None, losses=None):
         return super().encode(inputs, target_space, hparams, features, losses)
 

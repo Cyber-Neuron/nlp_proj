@@ -14,6 +14,13 @@ from tensor2tensor.utils import registry
 import json
 import tensorflow as tf
 
+dataset_urls = ["http://snap.stanford.edu/data/amazon/productGraph/categoryFiles/reviews_Amazon_Instant_Video_5.json.gz",
+                    "http://snap.stanford.edu/data/amazon/productGraph/categoryFiles/reviews_Books_5.json.gz",
+                  "http://snap.stanford.edu/data/amazon/productGraph/categoryFiles/reviews_Movies_and_TV_5.json.gz",
+                  "http://snap.stanford.edu/data/amazon/productGraph/categoryFiles/reviews_Electronics_5.json.gz"
+                  ]
+
+
 def _build_vocab(filename, vocab_dir, vocab_name):
     """Reads a file to build a vocabulary.
  
@@ -42,7 +49,7 @@ def _build_vocab(filename, vocab_dir, vocab_name):
     return encoder
 
 
-def _maybe_download_corpus(tmp_dir, vocab_type):
+def _maybe_download_corpus(tmp_dir, vocab_type,dataset_url,dir_name):
     """Download and unpack the corpus.
 
     Args:
@@ -61,14 +68,7 @@ def _maybe_download_corpus(tmp_dir, vocab_type):
 #         dataset_url = ("https://s3.amazonaws.com/research.metamind.io/wikitext"
 #                        "/wikitext-103-v1.zip")
 #         dir_name = "wikitext-103"
-    dataset_urls = ["http://snap.stanford.edu/data/amazon/productGraph/categoryFiles/reviews_Amazon_Instant_Video_5.json.gz",
-                    "http://snap.stanford.edu/data/amazon/productGraph/categoryFiles/reviews_Books_5.json.gz",
-                  "http://snap.stanford.edu/data/amazon/productGraph/categoryFiles/reviews_Movies_and_TV_5.json.gz",
-                  "http://snap.stanford.edu/data/amazon/productGraph/categoryFiles/reviews_Electronics_5.json.gz"
-                  ]
-    idx=1
-    dataset_url = dataset_urls[idx]
-    dir_name = "awslm_"+str(idx)
+
     fname = os.path.basename(dataset_url)
     compressed_filepath = generator_utils.maybe_download(tmp_dir, fname,
                                                          dataset_url)
@@ -104,7 +104,10 @@ def _maybe_download_corpus(tmp_dir, vocab_type):
 @registry.register_problem
 class Amzlm(text_problems.Text2SelfProblem):
     """amz dataset token-level."""
-
+    def __init__(self, *args, **kwargs):
+        super(Amzlm, self).__init__(*args, **kwargs)
+        self.dataset_url = dataset_urls[0]
+        self.dir_name = "amzlm_videos"
     @property
     def dataset_splits(self):
         return [{
@@ -117,7 +120,8 @@ class Amzlm(text_problems.Text2SelfProblem):
             "split": problem.DatasetSplit.TEST,
             "shards": 1,
         }]
-
+    def dataset_filename(self):
+        return self.dir_name
     @property
     def is_generate_per_split(self):
         # If we have pre-existing data splits for (train, eval, test) then we set
@@ -139,7 +143,7 @@ class Amzlm(text_problems.Text2SelfProblem):
     def generate_samples(self, data_dir, tmp_dir, dataset_split):
         del dataset_split
         train_file = _maybe_download_corpus(
-            tmp_dir, self.vocab_type)
+            tmp_dir, self.vocab_type,self.dataset_url,self.dir_name)
 
         filepath = train_file
         if self.vocab_type==text_problems.VocabType.TOKEN:
@@ -153,7 +157,32 @@ class Amzlm(text_problems.Text2SelfProblem):
                     line = " ".join(line.strip().split())
                     if line:
 #                         yield {"targets": json.loads(line)["reviewText"]}
-                        yield {"targets": line}
+                        yield {"targets": line.lower()}
 
         return _generate_samples()
 
+@registry.register_problem
+class AmzlmBook(Amzlm):
+    def __init__(self, *args, **kwargs):
+        super(AmzlmBook, self).__init__(*args, **kwargs)
+        self.dataset_url = dataset_urls[1]
+        self.dir_name = "amzlm_books"
+    def dataset_filename(self):
+        return self.dir_name
+
+@registry.register_problem
+class AmzlmMovie(Amzlm):
+    def __init__(self, *args, **kwargs):
+        super(AmzlmMovie, self).__init__(*args, **kwargs)
+        self.dataset_url = dataset_urls[2]
+        self.dir_name = "amzlm_movies"
+    def dataset_filename(self):
+        return self.dir_name
+@registry.register_problem
+class AmzlmElec(Amzlm):
+    def __init__(self, *args, **kwargs):
+        super(AmzlmElec, self).__init__(*args, **kwargs)
+        self.dataset_url = dataset_urls[3]
+        self.dir_name = "amzlm_elecs"
+    def dataset_filename(self):
+        return self.dir_name
