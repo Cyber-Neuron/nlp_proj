@@ -8,6 +8,12 @@ sh senti.sh comp550/
 
 https://s3-us-west-2.amazonaws.com/openai-assets/research-covers/language-unsupervised/language_understanding_paper.pdf
 
+
+Transfer learning NLP
+https://medium.com/explorations-in-language-and-learning/transfer-learning-in-nlp-2d09c3dfaeb6
+
+
+
 1.重合度
 2.数据集:IMDB,SST
 3.subword [34]
