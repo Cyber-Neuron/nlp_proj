@@ -97,6 +97,16 @@ class AmzclsBook(Amzcls):
             return "vocab.%s.%d.%s" % ("amzlm_books",
                                  self.approx_vocab_size,
                                  text_problems.VocabType.SUBWORD)
+@registry.register_problem
+class AmzclsCd(Amzcls):
+#     def dataset_filename(self):
+#         return super(AmzclsBook, self).name    
+    @property
+    def vocab_filename(self):
+        if self.vocab_type == text_problems.VocabType.SUBWORD:
+            return "vocab.%s.%d.%s" % ("amzlm_cds",
+                                 self.approx_vocab_size,
+                                 text_problems.VocabType.SUBWORD)
 
 
 @registry.register_problem
@@ -150,9 +160,20 @@ class AmzsstRaw(SentimentSSTBinary):
     def approx_vocab_size(self):
         return 2**15  # 8k vocab suffices for this small dataset.
     def generate_samples(self, data_dir, tmp_dir, dataset_split):
-        for sample in super(AmzsstRaw, self).generate_samples(data_dir, tmp_dir, dataset_split):
-            sample["inputs"]=sample["inputs"].lower()
-            yield sample
+        sst_binary_dir = super(AmzsstRaw,self)._maybe_download_corpora(tmp_dir)
+        if dataset_split == problem.DatasetSplit.TRAIN:
+            filesplit = "train.tsv"
+        else:
+            filesplit = "test.2.tsv"
+    
+        filename = os.path.join(sst_binary_dir, filesplit)
+        for example in super(AmzsstRaw,self).example_generator(filename):
+            example["inputs"]=example["inputs"].lower()
+            yield example
+
+#         for sample in super(AmzsstRaw, self).generate_samples(data_dir, tmp_dir, dataset_split):
+#             sample["inputs"]=sample["inputs"].lower()
+#             yield sample
 @registry.register_problem            
 class AmzsstBook(AmzsstRaw):
     @property
@@ -161,6 +182,14 @@ class AmzsstBook(AmzsstRaw):
             return "vocab.%s.%d.%s" % ("amzlm_books",
                                  self.approx_vocab_size,
                                  text_problems.VocabType.SUBWORD)
+@registry.register_problem            
+class AmzsstCd(AmzsstRaw):
+    @property
+    def vocab_filename(self):
+        if self.vocab_type == text_problems.VocabType.SUBWORD:
+            return "vocab.%s.%d.%s" % ("amzlm_cds",
+                                 self.approx_vocab_size,
+                                 text_problems.VocabType.SUBWORD)            
 @registry.register_problem            
 class AmzsstMovie(AmzsstRaw):
     @property

@@ -17,7 +17,8 @@ import tensorflow as tf
 dataset_urls = ["http://snap.stanford.edu/data/amazon/productGraph/categoryFiles/reviews_Amazon_Instant_Video_5.json.gz",
                     "http://snap.stanford.edu/data/amazon/productGraph/categoryFiles/reviews_Books_5.json.gz",
                   "http://snap.stanford.edu/data/amazon/productGraph/categoryFiles/reviews_Movies_and_TV_5.json.gz",
-                  "http://snap.stanford.edu/data/amazon/productGraph/categoryFiles/reviews_Electronics_5.json.gz"
+                  "http://snap.stanford.edu/data/amazon/productGraph/categoryFiles/reviews_Electronics_5.json.gz",
+                  "http://snap.stanford.edu/data/amazon/productGraph/categoryFiles/reviews_CDs_and_Vinyl_5.json.gz"
                   ]
 
 
@@ -167,6 +168,14 @@ class AmzlmBook(Amzlm):
         super(AmzlmBook, self).__init__(*args, **kwargs)
         self.dataset_url = dataset_urls[1]
         self.dir_name = "amzlm_books"
+    def dataset_filename(self):
+        return self.dir_name
+@registry.register_problem
+class AmzlmCd(Amzlm):
+    def __init__(self, *args, **kwargs):
+        super(AmzlmCd, self).__init__(*args, **kwargs)
+        self.dataset_url = dataset_urls[4]
+        self.dir_name = "amzlm_cds"
     def dataset_filename(self):
         return self.dir_name
 
