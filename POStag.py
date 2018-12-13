@@ -19,10 +19,10 @@ r = redis.Redis(
      port=7777, 
      #password=''
     )
-def _store_tag(name,rs):
+def _store_tag(name,rs,k_prefix):
     if rs:
         try:
-            r.incr(name)
+            r.incr(k_prefix+"_"+name)
         except:
             print ("Redis Error:",name)
     else:
@@ -38,7 +38,7 @@ def _processing(line):
         except:
             print("exp:", line)
             return None
-def tag(file_path,use_redis=True):
+def tag(file_path,k_prefix,use_redis=True):
     with open(file_path) as f:
         for line in f:
             line = _processing(line)
@@ -49,7 +49,7 @@ def tag(file_path,use_redis=True):
                 tags = nltk.tag._pos_tag(tokens, None, tagger,lang="eng")
                 for t in tags:
                     tag = t[1]
-                    _store_tag(tag,use_redis)
+                    _store_tag(tag,use_redis,k_prefix)
             except:
                 print("EXP:", line)
                 continue
@@ -60,4 +60,9 @@ def tag(file_path,use_redis=True):
             for tag in tags_dic:
                 w.write(tag+"\t"+str(tags_dic[tag]))
                 w.write("\n")
+def getrst(key):
+    with open(key+".POSrst","w") as w:
+        for k in r.keys(key+"*"):
+            w.write(k.decode("utf-8").split("_")[1]+"\t"+str(r.get(k).decode("utf-8") )+"\n")
+                        
 fire.Fire()
