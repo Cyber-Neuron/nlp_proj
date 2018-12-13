@@ -6,12 +6,13 @@ t2t-trainer \
   --model=transfer_transformer \
   --hparams_set=transformer_small \
   --train_steps=$3 \
-  --eval_steps=150 \
+  --eval_steps=200 \
   --data_dir=$DATA_DIR \
   --t2t_usr_dir=$2 \
   --hparams='shared_embedding=True,batch_size=64,learning_rate=0.00025,learning_rate_decay_steps=2000' \
   --output_dir=$OUT_DIR \
-  --local_eval_frequency=500 \
+  --local_eval_frequency=1000 \
   --eval_throttle_seconds=10 \
   --problem=$1 \
-  --warm_start_from=$4 #path of pre-trained model
+  --worker_gpu=$4 \
+  --warm_start_from=$5 #path of pre-trained model
