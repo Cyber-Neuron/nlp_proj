@@ -1,5 +1,6 @@
 
-# nlp_proj
+# Tensor2tensor transformer transfer learning.
+## Using Amazon reviews to pre-train language model then fine-tune the model on SST and IMDB.
 sh lm.sh comp550/ amzlm
 
 sh gen.sh comp550/ amzlm
